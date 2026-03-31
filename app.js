@@ -9,6 +9,7 @@ const screenTitle = document.getElementById('screenTitle');
 const appNameInput = document.getElementById('appNameInput');
 const titleInput = document.getElementById('titleInput');
 const logoInput = document.getElementById('logoInput');
+const presetSelect = document.getElementById('presetSelect');
 const logoPreview = document.getElementById('logoPreview');
 const previewTitle = document.getElementById('previewTitle');
 const previewAppName = document.getElementById('previewAppName');
@@ -51,6 +52,43 @@ const defaultBranding = {
 };
 
 let branding = { ...defaultBranding };
+
+function createPresetLogo(bgColor, text) {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+      <rect width="256" height="256" rx="56" fill="${bgColor}" />
+      <text
+        x="50%"
+        y="52%"
+        dominant-baseline="middle"
+        text-anchor="middle"
+        fill="#ffffff"
+        font-family="Arial, sans-serif"
+        font-size="92"
+        font-weight="700"
+      >${text}</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+const appPresets = {
+  wavecash: {
+    appName: 'Wavecash',
+    title: 'Central Wavecash',
+    notificationTitle: 'Pix gerado',
+    notificationBody: 'Valor da venda R$ 9,41',
+    logoUrl: createPresetLogo('#0ea5e9', 'W')
+  },
+  sigilopay: {
+    appName: 'SigiloPay',
+    title: 'Central SigiloPay',
+    notificationTitle: 'Pix gerado',
+    notificationBody: 'Valor da venda R$ 9,41',
+    logoUrl: createPresetLogo('#7c3aed', 'S')
+  }
+};
 
 function loadBranding() {
   try {
@@ -154,6 +192,26 @@ function applyTemplate(template, n, total) {
 }
 
 function bindBrandingEvents() {
+  presetSelect.addEventListener('change', () => {
+    const preset = appPresets[presetSelect.value];
+    if (!preset) {
+      return;
+    }
+
+    branding = {
+      ...branding,
+      appName: preset.appName,
+      title: preset.title,
+      notificationTitle: preset.notificationTitle,
+      notificationBody: preset.notificationBody,
+      logoUrl: preset.logoUrl
+    };
+
+    applyBranding();
+    saveBranding();
+    noteArea.textContent = `${preset.appName} aplicado com sucesso.`;
+  });
+
   saveBrandBtn.addEventListener('click', () => {
     branding.appName = (appNameInput.value || defaultBranding.appName).trim();
     branding.title = (titleInput.value || defaultBranding.title).trim();
@@ -181,6 +239,7 @@ function bindBrandingEvents() {
 
     saveBranding();
     applyBranding();
+    presetSelect.value = 'manual';
     noteArea.textContent = 'Personalização salva. Se quiser atualizar o ícone instalado, reinstale o app na Tela de Início.';
   });
 
