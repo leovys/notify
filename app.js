@@ -90,6 +90,46 @@ const appPresets = {
   }
 };
 
+function applyPresetByKey(key, { persist = true } = {}) {
+  const preset = appPresets[key];
+  if (!preset) {
+    return false;
+  }
+
+  branding = {
+    ...branding,
+    appName: preset.appName,
+    title: preset.title,
+    notificationTitle: preset.notificationTitle,
+    notificationBody: preset.notificationBody,
+    logoUrl: preset.logoUrl
+  };
+
+  applyBranding();
+  presetSelect.value = key;
+
+  if (persist) {
+    saveBranding();
+  }
+
+  return true;
+}
+
+function bootstrapPresetFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const presetKey = params.get('preset');
+  if (!presetKey) {
+    return;
+  }
+
+  const applied = applyPresetByKey(presetKey, { persist: true });
+  if (!applied) {
+    return;
+  }
+
+  noteArea.textContent = `Preset ${branding.appName} carregado por link. Para mudar o nome no topo da notificação, reinstale este atalho na Tela de Início.`;
+}
+
 function loadBranding() {
   try {
     const raw = localStorage.getItem(BRAND_KEY);
@@ -193,23 +233,12 @@ function applyTemplate(template, n, total) {
 
 function bindBrandingEvents() {
   presetSelect.addEventListener('change', () => {
-    const preset = appPresets[presetSelect.value];
-    if (!preset) {
+    const applied = applyPresetByKey(presetSelect.value, { persist: true });
+    if (!applied) {
       return;
     }
 
-    branding = {
-      ...branding,
-      appName: preset.appName,
-      title: preset.title,
-      notificationTitle: preset.notificationTitle,
-      notificationBody: preset.notificationBody,
-      logoUrl: preset.logoUrl
-    };
-
-    applyBranding();
-    saveBranding();
-    noteArea.textContent = `${preset.appName} aplicado com sucesso.`;
+    noteArea.textContent = `${branding.appName} aplicado com sucesso.`;
   });
 
   saveBrandBtn.addEventListener('click', () => {
@@ -489,6 +518,7 @@ stopCampaignBtn.addEventListener('click', () => {
 window.addEventListener('load', async () => {
   loadBranding();
   applyBranding();
+  bootstrapPresetFromUrl();
   bindBrandingEvents();
 
   await registerServiceWorker();
