@@ -26,11 +26,14 @@ let campaignRunning = false;
 let campaignTotal = 0;
 let campaignSent = 0;
 
+const APP_BASE_URL = new URL('.', window.location.href);
+const DEFAULT_ICON_URL = new URL('icon.svg', APP_BASE_URL).href;
+
 const BRAND_KEY = 'notifyBranding';
 const defaultBranding = {
   appName: 'Notify',
   title: 'Notificações no iPhone',
-  logoUrl: '/icon.svg'
+  logoUrl: DEFAULT_ICON_URL
 };
 
 let branding = { ...defaultBranding };
@@ -43,10 +46,11 @@ function loadBranding() {
     }
 
     const parsed = JSON.parse(raw);
+    const resolvedLogo = parsed.logoUrl === '/icon.svg' ? DEFAULT_ICON_URL : parsed.logoUrl;
     branding = {
       appName: parsed.appName || defaultBranding.appName,
       title: parsed.title || defaultBranding.title,
-      logoUrl: parsed.logoUrl || defaultBranding.logoUrl
+      logoUrl: resolvedLogo || defaultBranding.logoUrl
     };
   } catch {
     branding = { ...defaultBranding };
@@ -69,7 +73,8 @@ function updateManifest() {
   const manifest = {
     name: branding.appName,
     short_name: branding.appName.slice(0, 12),
-    start_url: '/',
+    start_url: APP_BASE_URL.href,
+    scope: APP_BASE_URL.href,
     display: 'standalone',
     background_color: '#072b2b',
     theme_color: '#0f766e',
@@ -256,7 +261,7 @@ function showLocalNotification(title, body) {
     badge: branding.logoUrl,
     vibrate: [100, 50, 100],
     tag: 'notify-demo',
-    data: { url: '/' }
+    data: { url: APP_BASE_URL.href }
   };
 
   if (swRegistration) {

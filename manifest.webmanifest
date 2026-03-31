@@ -1,14 +1,15 @@
 {
   "name": "Notify Web App",
   "short_name": "Notify",
-  "start_url": "/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#072b2b",
   "theme_color": "#0f766e",
   "description": "PWA para testar notificações no iPhone como app.",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
