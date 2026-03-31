@@ -19,6 +19,8 @@ const previewNotificationApp = document.getElementById('previewNotificationApp')
 const previewNotificationTitle = document.getElementById('previewNotificationTitle');
 const previewNotificationBody = document.getElementById('previewNotificationBody');
 const notificationIconPreview = document.getElementById('notificationIconPreview');
+const appleTouchIcon = document.getElementById('appleTouchIcon');
+const appleWebAppTitle = document.getElementById('appleWebAppTitle');
 const countInput = document.getElementById('countInput');
 const intervalInput = document.getElementById('intervalInput');
 const startCampaignBtn = document.getElementById('startCampaignBtn');
@@ -128,6 +130,14 @@ function applyBranding() {
   logoPreview.src = branding.logoUrl;
   notificationIconPreview.src = branding.logoUrl;
   document.title = branding.appName;
+
+  if (appleTouchIcon) {
+    appleTouchIcon.href = branding.logoUrl;
+  }
+
+  if (appleWebAppTitle) {
+    appleWebAppTitle.content = branding.appName;
+  }
 
   appNameInput.value = branding.appName;
   titleInput.value = branding.title;
@@ -297,9 +307,6 @@ function showLocalNotification(title, body) {
   const options = {
     body,
     icon: branding.logoUrl,
-    badge: branding.logoUrl,
-    vibrate: [100, 50, 100],
-    tag: 'notify-demo',
     data: { url: APP_BASE_URL.href }
   };
 
