@@ -26,7 +26,11 @@ let campaignRunning = false;
 let campaignTotal = 0;
 let campaignSent = 0;
 
-const APP_BASE_URL = new URL('.', window.location.href);
+const IS_GITHUB_PAGES = window.location.hostname.endsWith('github.io');
+const GITHUB_REPO_BASE = '/notify/';
+const APP_BASE_URL = IS_GITHUB_PAGES
+  ? new URL(GITHUB_REPO_BASE, window.location.origin)
+  : new URL('.', window.location.href);
 const DEFAULT_ICON_URL = new URL('icon.svg', APP_BASE_URL).href;
 
 const BRAND_KEY = 'notifyBranding';
@@ -73,8 +77,8 @@ function updateManifest() {
   const manifest = {
     name: branding.appName,
     short_name: branding.appName.slice(0, 12),
-    start_url: APP_BASE_URL.href,
-    scope: APP_BASE_URL.href,
+    start_url: APP_BASE_URL.pathname,
+    scope: APP_BASE_URL.pathname,
     display: 'standalone',
     background_color: '#072b2b',
     theme_color: '#0f766e',
