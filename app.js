@@ -43,7 +43,7 @@ const DEFAULT_ICON_URL = new URL('icon.svg', APP_BASE_URL).href;
 
 const BRAND_KEY = 'notifyBranding';
 const defaultBranding = {
-  appName: 'Notify',
+  appName: 'Seu App',
   title: 'Notificações no iPhone',
   logoUrl: DEFAULT_ICON_URL,
   notificationTitle: 'Pix gerado',

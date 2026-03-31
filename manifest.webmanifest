@@ -1,6 +1,6 @@
 {
-  "name": "Notify Web App",
-  "short_name": "Notify",
+  "name": "Seu App",
+  "short_name": "SeuApp",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
