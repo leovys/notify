@@ -157,6 +157,53 @@ h1 {
   color: #475569;
 }
 
+.notification-preview {
+  margin-bottom: 12px;
+  border-radius: 14px;
+  padding: 10px;
+  background: linear-gradient(170deg, #0b1220, #05070c 70%);
+}
+
+.notification-app {
+  margin: 0 0 8px;
+  color: #f8fafc;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.notification-card {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.notification-card img {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.notification-card strong {
+  display: block;
+  margin: 0;
+  color: #f8fafc;
+  font-size: 17px;
+  line-height: 1.1;
+}
+
+.notification-card p {
+  margin: 2px 0 0;
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
 .actions {
   display: grid;
   gap: 10px;

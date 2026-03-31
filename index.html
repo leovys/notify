@@ -36,6 +36,21 @@
             <span>Logo (imagem)</span>
             <input id="logoInput" type="file" accept="image/*" />
           </label>
+
+          <label class="field">
+            <span>Título da notificação</span>
+            <input id="notificationTitleInput" type="text" maxlength="48" placeholder="Ex.: Pix gerado" />
+          </label>
+
+          <label class="field">
+            <span>Descrição da notificação</span>
+            <input
+              id="notificationBodyInput"
+              type="text"
+              maxlength="90"
+              placeholder="Ex.: Valor da venda R$ 9,41"
+            />
+          </label>
         </div>
 
         <div class="preview" id="brandPreview">
@@ -46,7 +61,19 @@
           </div>
         </div>
 
+        <div class="notification-preview" id="notificationPreview">
+          <p class="notification-app" id="previewNotificationApp">Sigilo Pay</p>
+          <div class="notification-card">
+            <img id="notificationIconPreview" src="/icon.svg" alt="Ícone da notificação" />
+            <div>
+              <strong id="previewNotificationTitle">Pix gerado</strong>
+              <p id="previewNotificationBody">Valor da venda R$ 9,41</p>
+            </div>
+          </div>
+        </div>
+
         <button id="saveBrandBtn" class="btn btn-primary" type="button">Salvar personalização</button>
+        <p class="note">Dica: você pode usar {n} e {total} no texto para campanhas automáticas.</p>
       </section>
 
       <section class="panel">

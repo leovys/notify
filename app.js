@@ -13,6 +13,12 @@ const logoPreview = document.getElementById('logoPreview');
 const previewTitle = document.getElementById('previewTitle');
 const previewAppName = document.getElementById('previewAppName');
 const saveBrandBtn = document.getElementById('saveBrandBtn');
+const notificationTitleInput = document.getElementById('notificationTitleInput');
+const notificationBodyInput = document.getElementById('notificationBodyInput');
+const previewNotificationApp = document.getElementById('previewNotificationApp');
+const previewNotificationTitle = document.getElementById('previewNotificationTitle');
+const previewNotificationBody = document.getElementById('previewNotificationBody');
+const notificationIconPreview = document.getElementById('notificationIconPreview');
 const countInput = document.getElementById('countInput');
 const intervalInput = document.getElementById('intervalInput');
 const startCampaignBtn = document.getElementById('startCampaignBtn');
@@ -37,7 +43,9 @@ const BRAND_KEY = 'notifyBranding';
 const defaultBranding = {
   appName: 'Notify',
   title: 'Notificações no iPhone',
-  logoUrl: DEFAULT_ICON_URL
+  logoUrl: DEFAULT_ICON_URL,
+  notificationTitle: 'Pix gerado',
+  notificationBody: 'Valor da venda R$ 9,41'
 };
 
 let branding = { ...defaultBranding };
@@ -54,7 +62,9 @@ function loadBranding() {
     branding = {
       appName: parsed.appName || defaultBranding.appName,
       title: parsed.title || defaultBranding.title,
-      logoUrl: resolvedLogo || defaultBranding.logoUrl
+      logoUrl: resolvedLogo || defaultBranding.logoUrl,
+      notificationTitle: parsed.notificationTitle || defaultBranding.notificationTitle,
+      notificationBody: parsed.notificationBody || defaultBranding.notificationBody
     };
   } catch {
     branding = { ...defaultBranding };
@@ -112,13 +122,25 @@ function applyBranding() {
   screenTitle.textContent = branding.title;
   previewTitle.textContent = branding.title;
   previewAppName.textContent = branding.appName;
+  previewNotificationApp.textContent = branding.appName;
+  previewNotificationTitle.textContent = branding.notificationTitle;
+  previewNotificationBody.textContent = branding.notificationBody;
   logoPreview.src = branding.logoUrl;
+  notificationIconPreview.src = branding.logoUrl;
   document.title = branding.appName;
 
   appNameInput.value = branding.appName;
   titleInput.value = branding.title;
+  notificationTitleInput.value = branding.notificationTitle;
+  notificationBodyInput.value = branding.notificationBody;
 
   updateManifest();
+}
+
+function applyTemplate(template, n, total) {
+  return String(template)
+    .replaceAll('{n}', String(n))
+    .replaceAll('{total}', String(total));
 }
 
 function bindBrandingEvents() {
@@ -132,6 +154,19 @@ function bindBrandingEvents() {
 
     if (!branding.title) {
       branding.title = defaultBranding.title;
+    }
+
+    branding.notificationTitle = (
+      notificationTitleInput.value || defaultBranding.notificationTitle
+    ).trim();
+    branding.notificationBody = (notificationBodyInput.value || defaultBranding.notificationBody).trim();
+
+    if (!branding.notificationTitle) {
+      branding.notificationTitle = defaultBranding.notificationTitle;
+    }
+
+    if (!branding.notificationBody) {
+      branding.notificationBody = defaultBranding.notificationBody;
     }
 
     saveBranding();
@@ -293,9 +328,12 @@ function stopCampaign(showMessage = true) {
 
 function triggerCampaignNotification() {
   campaignSent += 1;
+  const title = applyTemplate(branding.notificationTitle, campaignSent, campaignTotal);
+  const body = applyTemplate(branding.notificationBody, campaignSent, campaignTotal);
+
   showLocalNotification(
-    `${branding.appName} (${campaignSent}/${campaignTotal})`,
-    `Notificação automática ${campaignSent} de ${campaignTotal}.`
+    title,
+    body
   );
 
   campaignStatus.textContent = `Enviadas ${campaignSent} de ${campaignTotal}.`;
@@ -363,14 +401,14 @@ enableBtn.addEventListener('click', async () => {
 });
 
 notifyBtn.addEventListener('click', () => {
-  showLocalNotification(branding.appName, `Essa é uma notificação de teste da ${branding.appName}.`);
+  showLocalNotification(branding.notificationTitle, branding.notificationBody);
 });
 
 timerBtn.addEventListener('click', () => {
   noteArea.textContent = 'Agendado: vou te notificar em 10 segundos.';
 
   setTimeout(() => {
-    showLocalNotification(`Lembrete • ${branding.appName}`, 'Passaram 10 segundos. Notificação disparada com sucesso.');
+    showLocalNotification(branding.notificationTitle, branding.notificationBody);
   }, 10000);
 });
 
