@@ -175,7 +175,8 @@ async function registerServiceWorker() {
   }
 
   try {
-    swRegistration = await navigator.serviceWorker.register('sw.js');
+    swRegistration = await navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' });
+    await swRegistration.update();
   } catch (error) {
     noteArea.textContent = `Erro ao registrar service worker: ${error.message}`;
   }
