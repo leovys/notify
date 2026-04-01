@@ -3,141 +3,107 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0f766e" />
+    <meta name="theme-color" content="#4a12c7" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" id="appleWebAppTitle" content="Seu App" />
-    <title>Painel de Notificações</title>
-    <link rel="apple-touch-icon" id="appleTouchIcon" href="icon.svg" />
-    <link rel="manifest" href="manifest.webmanifest?v=3" />
+    <meta name="apple-mobile-web-app-title" content="zpay" />
+    <title>zpay - Disparador</title>
+    <link rel="apple-touch-icon" href="image.png" />
+    <link rel="manifest" href="manifest.webmanifest?v=4" />
     <link rel="stylesheet" href="styles.css" />
     <script defer src="app.js"></script>
   </head>
   <body>
     <main class="card">
-      <p class="badge" id="appBadge">Seu App</p>
-      <h1 id="screenTitle">Notificações no iPhone</h1>
-      <p class="subtitle">
-        Permita as notificações e teste alertas no estilo app direto da web.
-      </p>
-
-      <section class="panel">
-        <p>Personalização do app:</p>
-        <div class="branding-grid">
-          <label class="field">
-            <span>App pré-cadastrado</span>
-            <select id="presetSelect">
-              <option value="manual">Manual (personalizado)</option>
-              <option value="wavecash">Wavecash</option>
-              <option value="sigilopay">SigiloPay</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span>Nome do app</span>
-            <input id="appNameInput" type="text" maxlength="28" placeholder="Ex.: Minha Empresa" />
-          </label>
-
-          <label class="field">
-            <span>Título da tela</span>
-            <input id="titleInput" type="text" maxlength="48" placeholder="Ex.: Central de Notificações" />
-          </label>
-
-          <label class="field">
-            <span>Logo (imagem)</span>
-            <input id="logoInput" type="file" accept="image/*" />
-          </label>
-
-          <label class="field">
-            <span>Título da notificação</span>
-            <input id="notificationTitleInput" type="text" maxlength="48" placeholder="Ex.: Pix gerado" />
-          </label>
-
-          <label class="field">
-            <span>Descrição da notificação</span>
-            <input
-              id="notificationBodyInput"
-              type="text"
-              maxlength="90"
-              placeholder="Ex.: Valor da venda R$ 9,41"
-            />
-          </label>
-        </div>
-
-        <div class="preview" id="brandPreview">
-          <img id="logoPreview" src="/icon.svg" alt="Logo do app" />
-          <div>
-            <strong id="previewTitle">Notificações no iPhone</strong>
-            <p id="previewAppName">Seu App</p>
-          </div>
-        </div>
-
-        <div class="notification-preview" id="notificationPreview">
-          <p class="notification-app" id="previewNotificationApp">Sigilo Pay</p>
-          <div class="notification-card">
-            <img id="notificationIconPreview" src="/icon.svg" alt="Ícone da notificação" />
-            <div>
-              <strong id="previewNotificationTitle">Pix gerado</strong>
-              <p id="previewNotificationBody">Valor da venda R$ 9,41</p>
-            </div>
-          </div>
-        </div>
-
-        <button id="saveBrandBtn" class="btn btn-primary" type="button">Salvar personalização</button>
-        <p class="note">Dica: você pode usar {n} e {total} no texto para campanhas automáticas.</p>
-      </section>
+      <img class="logo" src="image.png" alt="Logo zpay" />
+      <h1>Disparo de Notificações</h1>
+      <p class="subtitle">Escolha o tipo, informe o valor e programe quantidade + intervalo.</p>
 
       <section class="panel">
         <p>Status de permissão:</p>
         <strong id="permissionStatus">Ainda não solicitado</strong>
       </section>
 
-      <section class="panel">
-        <p>Diagnóstico do dispositivo:</p>
-        <pre id="envStatus" class="diag">Carregando...</pre>
-      </section>
-
       <div class="actions">
         <button id="enableBtn" class="btn btn-primary">Ativar notificações</button>
-        <button id="notifyBtn" class="btn btn-secondary" disabled>
-          Enviar notificação de teste
-        </button>
-      </div>
-
-      <div class="actions">
-        <button id="timerBtn" class="btn btn-ghost" disabled>
-          Notificar em 10 segundos
-        </button>
+        <button id="testBtn" class="btn btn-secondary" disabled>Enviar teste agora</button>
       </div>
 
       <section class="panel">
-        <p>Envio automático:</p>
+        <p>Configuração:</p>
         <div class="campaign-grid">
           <label class="field">
-            <span>Quantidade de notificações</span>
-            <input id="countInput" type="number" min="1" step="1" value="15" />
+            <span>Valor (R$)</span>
+            <input id="amountInput" type="text" inputmode="decimal" value="300,00" placeholder="300,00" />
           </label>
+        </div>
 
-          <label class="field">
-            <span>Intervalo (minutos)</span>
-            <input id="intervalInput" type="number" min="0.1" step="0.1" value="1" />
-          </label>
+        <div class="templates-grid">
+          <article class="template-item">
+            <label class="template-header">
+              <input id="typePending" type="checkbox" checked />
+              <span>Venda Pendente</span>
+            </label>
+            <p class="template-msg">⌛️ Venda Pendente<br />Nova venda de R$ 300,00<br />aguardando pagamento</p>
+            <div class="template-fields">
+              <label class="field">
+                <span>Quantidade</span>
+                <input id="pendingCount" type="number" min="1" step="1" value="5" />
+              </label>
+              <label class="field">
+                <span>Intervalo (min)</span>
+                <input id="pendingInterval" type="number" min="0.1" step="0.1" value="1" />
+              </label>
+            </div>
+          </article>
+
+          <article class="template-item">
+            <label class="template-header">
+              <input id="typeSale" type="checkbox" checked />
+              <span>Venda Realizada</span>
+            </label>
+            <p class="template-msg">💰 Nova Venda Realizada<br />Valor: R$ 300,00</p>
+            <div class="template-fields">
+              <label class="field">
+                <span>Quantidade</span>
+                <input id="saleCount" type="number" min="1" step="1" value="5" />
+              </label>
+              <label class="field">
+                <span>Intervalo (min)</span>
+                <input id="saleInterval" type="number" min="0.1" step="0.1" value="1" />
+              </label>
+            </div>
+          </article>
+
+          <article class="template-item">
+            <label class="template-header">
+              <input id="typeWithdraw" type="checkbox" checked />
+              <span>Saque Aprovado</span>
+            </label>
+            <p class="template-msg">✅ Saque Aprovado!<br />Seu saque de R$ 990,00 foi aprovado e será processado em breve.</p>
+            <div class="template-fields">
+              <label class="field">
+                <span>Quantidade</span>
+                <input id="withdrawCount" type="number" min="1" step="1" value="5" />
+              </label>
+              <label class="field">
+                <span>Intervalo (min)</span>
+                <input id="withdrawInterval" type="number" min="0.1" step="0.1" value="1" />
+              </label>
+            </div>
+          </article>
         </div>
 
         <div class="actions inline-actions">
-          <button id="startCampaignBtn" class="btn btn-secondary" disabled>
-            Iniciar sequência
-          </button>
-          <button id="stopCampaignBtn" class="btn btn-danger" disabled>
-            Parar sequência
-          </button>
+          <button id="startBtn" class="btn btn-secondary" disabled>Programar disparos</button>
+          <button id="stopBtn" class="btn btn-danger" disabled>Parar disparos</button>
         </div>
 
-        <p class="campaign-status" id="campaignStatus">Sequência parada.</p>
+        <p class="campaign-status" id="campaignStatus">Sem disparos ativos.</p>
       </section>
 
       <p class="note" id="noteArea">
-        Dica: no iPhone, adicione esta página à Tela de Início para experiência de app.
+        Dica: no iPhone, instale na Tela de Início para melhorar execução em segundo plano.
       </p>
     </main>
   </body>

@@ -1,298 +1,116 @@
 const permissionStatus = document.getElementById('permissionStatus');
 const enableBtn = document.getElementById('enableBtn');
-const notifyBtn = document.getElementById('notifyBtn');
-const timerBtn = document.getElementById('timerBtn');
+const testBtn = document.getElementById('testBtn');
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
 const noteArea = document.getElementById('noteArea');
-const envStatus = document.getElementById('envStatus');
-const appBadge = document.getElementById('appBadge');
-const screenTitle = document.getElementById('screenTitle');
-const appNameInput = document.getElementById('appNameInput');
-const titleInput = document.getElementById('titleInput');
-const logoInput = document.getElementById('logoInput');
-const presetSelect = document.getElementById('presetSelect');
-const logoPreview = document.getElementById('logoPreview');
-const previewTitle = document.getElementById('previewTitle');
-const previewAppName = document.getElementById('previewAppName');
-const saveBrandBtn = document.getElementById('saveBrandBtn');
-const notificationTitleInput = document.getElementById('notificationTitleInput');
-const notificationBodyInput = document.getElementById('notificationBodyInput');
-const previewNotificationApp = document.getElementById('previewNotificationApp');
-const previewNotificationTitle = document.getElementById('previewNotificationTitle');
-const previewNotificationBody = document.getElementById('previewNotificationBody');
-const notificationIconPreview = document.getElementById('notificationIconPreview');
-const appleTouchIcon = document.getElementById('appleTouchIcon');
-const appleWebAppTitle = document.getElementById('appleWebAppTitle');
-const countInput = document.getElementById('countInput');
-const intervalInput = document.getElementById('intervalInput');
-const startCampaignBtn = document.getElementById('startCampaignBtn');
-const stopCampaignBtn = document.getElementById('stopCampaignBtn');
 const campaignStatus = document.getElementById('campaignStatus');
+const amountInput = document.getElementById('amountInput');
+
+const typePending = document.getElementById('typePending');
+const typeSale = document.getElementById('typeSale');
+const typeWithdraw = document.getElementById('typeWithdraw');
+
+const pendingCount = document.getElementById('pendingCount');
+const pendingInterval = document.getElementById('pendingInterval');
+const saleCount = document.getElementById('saleCount');
+const saleInterval = document.getElementById('saleInterval');
+const withdrawCount = document.getElementById('withdrawCount');
+const withdrawInterval = document.getElementById('withdrawInterval');
+
+const APP_NAME = 'zpay';
+const APP_ICON = new URL('image.png', window.location.href).href;
+const pendingTimeouts = [];
 
 let swRegistration;
-let manifestBlobUrl;
-let campaignTimer;
-let campaignRunning = false;
-let campaignTotal = 0;
-let campaignSent = 0;
+let running = false;
+let sentCount = 0;
+let totalCount = 0;
 
-const IS_GITHUB_PAGES = window.location.hostname.endsWith('github.io');
-const GITHUB_REPO_BASE = '/notify/';
-const APP_BASE_URL = IS_GITHUB_PAGES
-  ? new URL(GITHUB_REPO_BASE, window.location.origin)
-  : new URL('.', window.location.href);
-const DEFAULT_ICON_URL = new URL('icon.svg', APP_BASE_URL).href;
-
-const BRAND_KEY = 'notifyBranding';
-const defaultBranding = {
-  appName: 'Seu App',
-  title: 'Notificações no iPhone',
-  logoUrl: DEFAULT_ICON_URL,
-  notificationTitle: 'Pix gerado',
-  notificationBody: 'Valor da venda R$ 9,41'
-};
-
-let branding = { ...defaultBranding };
-
-function createPresetLogo(bgColor, text) {
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-      <rect width="256" height="256" rx="56" fill="${bgColor}" />
-      <text
-        x="50%"
-        y="52%"
-        dominant-baseline="middle"
-        text-anchor="middle"
-        fill="#ffffff"
-        font-family="Arial, sans-serif"
-        font-size="92"
-        font-weight="700"
-      >${text}</text>
-    </svg>
-  `;
-
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+function formatCurrencyBRL(value) {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value);
 }
 
-const appPresets = {
-  wavecash: {
-    appName: 'Wavecash',
-    title: 'Central Wavecash',
-    notificationTitle: 'Pix gerado',
-    notificationBody: 'Valor da venda R$ 9,41',
-    logoUrl: createPresetLogo('#0ea5e9', 'W')
-  },
-  sigilopay: {
-    appName: 'SigiloPay',
-    title: 'Central SigiloPay',
-    notificationTitle: 'Pix gerado',
-    notificationBody: 'Valor da venda R$ 9,41',
-    logoUrl: createPresetLogo('#7c3aed', 'S')
-  }
-};
-
-function applyPresetByKey(key, { persist = true } = {}) {
-  const preset = appPresets[key];
-  if (!preset) {
-    return false;
+function parseAmount() {
+  const raw = String(amountInput.value || '').trim();
+  if (!raw) {
+    return null;
   }
 
-  branding = {
-    ...branding,
-    appName: preset.appName,
-    title: preset.title,
-    notificationTitle: preset.notificationTitle,
-    notificationBody: preset.notificationBody,
-    logoUrl: preset.logoUrl
+  const normalized = raw
+    .replace(/[R$\s]/g, '')
+    .replace(/\./g, '')
+    .replace(',', '.');
+
+  const value = Number.parseFloat(normalized);
+  if (!Number.isFinite(value) || value <= 0) {
+    return null;
+  }
+
+  return value;
+}
+
+function getTemplateMessage(type, formattedValue) {
+  if (type === 'pending') {
+    return {
+      title: '⌛️ Venda Pendente',
+      body: `Nova venda de ${formattedValue}\naguardando pagamento`
+    };
+  }
+
+  if (type === 'sale') {
+    return {
+      title: '💰 Nova Venda Realizada',
+      body: `Valor: ${formattedValue}`
+    };
+  }
+
+  return {
+    title: '✅ Saque Aprovado!',
+    body: `Seu saque de ${formattedValue} foi aprovado e será processado em breve.`
+  };
+}
+
+function getJobs() {
+  const jobs = [];
+
+  const maybeAddJob = (enabled, type, countEl, intervalEl) => {
+    if (!enabled.checked) {
+      return;
+    }
+
+    const count = Number.parseInt(countEl.value, 10);
+    const intervalMinutes = Number.parseFloat(intervalEl.value);
+
+    if (!Number.isFinite(count) || count < 1) {
+      throw new Error('Quantidade deve ser pelo menos 1 nos tipos selecionados.');
+    }
+
+    if (!Number.isFinite(intervalMinutes) || intervalMinutes <= 0) {
+      throw new Error('Intervalo deve ser maior que zero nos tipos selecionados.');
+    }
+
+    jobs.push({
+      type,
+      count,
+      intervalMs: Math.round(intervalMinutes * 60 * 1000)
+    });
   };
 
-  applyBranding();
-  presetSelect.value = key;
+  maybeAddJob(typePending, 'pending', pendingCount, pendingInterval);
+  maybeAddJob(typeSale, 'sale', saleCount, saleInterval);
+  maybeAddJob(typeWithdraw, 'withdraw', withdrawCount, withdrawInterval);
 
-  if (persist) {
-    saveBranding();
-  }
-
-  return true;
+  return jobs;
 }
 
-function bootstrapPresetFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const presetKey = params.get('preset');
-  if (!presetKey) {
-    return;
+function clearFallbackTimers() {
+  while (pendingTimeouts.length > 0) {
+    clearTimeout(pendingTimeouts.pop());
   }
-
-  const applied = applyPresetByKey(presetKey, { persist: true });
-  if (!applied) {
-    return;
-  }
-
-  noteArea.textContent = `Preset ${branding.appName} carregado por link. Para mudar o nome no topo da notificação, reinstale este atalho na Tela de Início.`;
-}
-
-function loadBranding() {
-  try {
-    const raw = localStorage.getItem(BRAND_KEY);
-    if (!raw) {
-      return;
-    }
-
-    const parsed = JSON.parse(raw);
-    const resolvedLogo = parsed.logoUrl === '/icon.svg' ? DEFAULT_ICON_URL : parsed.logoUrl;
-    branding = {
-      appName: parsed.appName || defaultBranding.appName,
-      title: parsed.title || defaultBranding.title,
-      logoUrl: resolvedLogo || defaultBranding.logoUrl,
-      notificationTitle: parsed.notificationTitle || defaultBranding.notificationTitle,
-      notificationBody: parsed.notificationBody || defaultBranding.notificationBody
-    };
-  } catch {
-    branding = { ...defaultBranding };
-  }
-}
-
-function saveBranding() {
-  localStorage.setItem(BRAND_KEY, JSON.stringify(branding));
-}
-
-function updateManifest() {
-  const iconType = branding.logoUrl.includes('icon.svg')
-    ? 'image/svg+xml'
-    : branding.logoUrl.startsWith('data:image/png')
-      ? 'image/png'
-      : branding.logoUrl.startsWith('data:image/jpeg')
-        ? 'image/jpeg'
-        : 'image/svg+xml';
-
-  const manifest = {
-    name: branding.appName,
-    short_name: branding.appName.slice(0, 12),
-    start_url: APP_BASE_URL.pathname,
-    scope: APP_BASE_URL.pathname,
-    display: 'standalone',
-    background_color: '#072b2b',
-    theme_color: '#0f766e',
-    description: `PWA ${branding.appName} para testar notificações no iPhone.`,
-    icons: [
-      {
-        src: branding.logoUrl,
-        sizes: 'any',
-        type: iconType,
-        purpose: 'any maskable'
-      }
-    ]
-  };
-
-  const manifestLink = document.querySelector('link[rel="manifest"]');
-  if (!manifestLink) {
-    return;
-  }
-
-  if (manifestBlobUrl) {
-    URL.revokeObjectURL(manifestBlobUrl);
-  }
-
-  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-  manifestBlobUrl = URL.createObjectURL(blob);
-  manifestLink.href = manifestBlobUrl;
-}
-
-function applyBranding() {
-  appBadge.textContent = branding.appName;
-  screenTitle.textContent = branding.title;
-  previewTitle.textContent = branding.title;
-  previewAppName.textContent = branding.appName;
-  previewNotificationApp.textContent = branding.appName;
-  previewNotificationTitle.textContent = branding.notificationTitle;
-  previewNotificationBody.textContent = branding.notificationBody;
-  logoPreview.src = branding.logoUrl;
-  notificationIconPreview.src = branding.logoUrl;
-  document.title = branding.appName;
-
-  if (appleTouchIcon) {
-    appleTouchIcon.href = branding.logoUrl;
-  }
-
-  if (appleWebAppTitle) {
-    appleWebAppTitle.content = branding.appName;
-  }
-
-  appNameInput.value = branding.appName;
-  titleInput.value = branding.title;
-  notificationTitleInput.value = branding.notificationTitle;
-  notificationBodyInput.value = branding.notificationBody;
-
-  updateManifest();
-}
-
-function applyTemplate(template, n, total) {
-  return String(template)
-    .replaceAll('{n}', String(n))
-    .replaceAll('{total}', String(total));
-}
-
-function bindBrandingEvents() {
-  presetSelect.addEventListener('change', () => {
-    const applied = applyPresetByKey(presetSelect.value, { persist: true });
-    if (!applied) {
-      return;
-    }
-
-    noteArea.textContent = `${branding.appName} aplicado com sucesso.`;
-  });
-
-  saveBrandBtn.addEventListener('click', () => {
-    branding.appName = (appNameInput.value || defaultBranding.appName).trim();
-    branding.title = (titleInput.value || defaultBranding.title).trim();
-
-    if (!branding.appName) {
-      branding.appName = defaultBranding.appName;
-    }
-
-    if (!branding.title) {
-      branding.title = defaultBranding.title;
-    }
-
-    branding.notificationTitle = (
-      notificationTitleInput.value || defaultBranding.notificationTitle
-    ).trim();
-    branding.notificationBody = (notificationBodyInput.value || defaultBranding.notificationBody).trim();
-
-    if (!branding.notificationTitle) {
-      branding.notificationTitle = defaultBranding.notificationTitle;
-    }
-
-    if (!branding.notificationBody) {
-      branding.notificationBody = defaultBranding.notificationBody;
-    }
-
-    saveBranding();
-    applyBranding();
-    presetSelect.value = 'manual';
-    noteArea.textContent = 'Personalização salva. Se quiser atualizar o ícone instalado, reinstale o app na Tela de Início.';
-  });
-
-  logoInput.addEventListener('change', () => {
-    const [file] = logoInput.files || [];
-    if (!file) {
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result || '');
-      if (!result.startsWith('data:image/')) {
-        noteArea.textContent = 'Arquivo inválido. Selecione uma imagem.';
-        return;
-      }
-
-      branding.logoUrl = result;
-      applyBranding();
-      saveBranding();
-      noteArea.textContent = 'Logo atualizado com sucesso.';
-    };
-    reader.readAsDataURL(file);
-  });
 }
 
 function isIOS() {
@@ -303,62 +121,31 @@ function isStandaloneMode() {
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 }
 
-function getIOSMajorVersion() {
-  const match = navigator.userAgent.match(/OS (\d+)_/);
-  return match ? Number.parseInt(match[1], 10) : null;
-}
-
-function updateDiagnosticsPanel() {
-  const iosVersion = getIOSMajorVersion();
-  const lines = [
-    `HTTPS seguro: ${window.isSecureContext ? 'sim' : 'nao'}`,
-    `Modo Tela de Inicio: ${isStandaloneMode() ? 'sim' : 'nao'}`,
-    `Notification API: ${'Notification' in window ? 'sim' : 'nao'}`,
-    `Service Worker: ${'serviceWorker' in navigator ? 'sim' : 'nao'}`,
-    `Dispositivo iOS: ${isIOS() ? 'sim' : 'nao'}`,
-    `Versao iOS detectada: ${iosVersion || 'nao detectada'}`
-  ];
-
-  envStatus.textContent = lines.join('\n');
-}
-
 function getSupportBlockReason() {
   if ('Notification' in window) {
     return '';
   }
 
   if (!window.isSecureContext) {
-    return 'No iPhone, notificações web exigem HTTPS. Em HTTP local não funciona.';
+    return 'No iPhone, notificações web exigem HTTPS.';
   }
 
   if (isIOS() && !isStandaloneMode()) {
     return 'No iPhone, abra pela Tela de Início (Compartilhar > Adicionar à Tela de Início).';
   }
 
-  const iosVersion = getIOSMajorVersion();
-  if (isIOS() && iosVersion && iosVersion < 16) {
-    return 'Seu iOS aparenta ser antigo. Web push no iPhone exige iOS 16.4 ou superior.';
-  }
-
-  if (isIOS()) {
-    return 'Verifique se o iOS é 16.4+ e se o app foi aberto pela Tela de Início.';
-  }
-
-  return 'Este navegador não expõe Notification API neste contexto.';
+  return 'Este navegador não permite Notification API neste contexto.';
 }
 
 function updateUI() {
-  updateDiagnosticsPanel();
-
   const blockReason = getSupportBlockReason();
 
   if (blockReason) {
-    permissionStatus.textContent = 'Notificações indisponíveis neste modo';
+    permissionStatus.textContent = 'Notificações indisponíveis';
     enableBtn.disabled = true;
-    notifyBtn.disabled = true;
-    timerBtn.disabled = true;
-    startCampaignBtn.disabled = true;
-    stopCampaignBtn.disabled = true;
+    testBtn.disabled = true;
+    startBtn.disabled = true;
+    stopBtn.disabled = true;
     noteArea.textContent = blockReason;
     return;
   }
@@ -372,10 +159,9 @@ function updateUI() {
   permissionStatus.textContent = statusMap[Notification.permission] || Notification.permission;
 
   const granted = Notification.permission === 'granted';
-  notifyBtn.disabled = !granted;
-  timerBtn.disabled = !granted;
-  startCampaignBtn.disabled = !granted || campaignRunning;
-  stopCampaignBtn.disabled = !campaignRunning;
+  testBtn.disabled = !granted;
+  startBtn.disabled = !granted || running;
+  stopBtn.disabled = !running;
 }
 
 async function registerServiceWorker() {
@@ -391,11 +177,12 @@ async function registerServiceWorker() {
   }
 }
 
-function showLocalNotification(title, body) {
+function showLocalNotification(title, body, tag) {
   const options = {
     body,
-    icon: branding.logoUrl,
-    data: { url: APP_BASE_URL.href }
+    icon: APP_ICON,
+    tag,
+    data: { url: window.location.href, app: APP_NAME }
   };
 
   if (swRegistration) {
@@ -406,78 +193,119 @@ function showLocalNotification(title, body) {
   new Notification(title, options);
 }
 
-function stopCampaign(showMessage = true) {
-  if (campaignTimer) {
-    clearInterval(campaignTimer);
-    campaignTimer = undefined;
-  }
+function supportsNotificationTriggers() {
+  return typeof window.TimestampTrigger === 'function' && Boolean(swRegistration);
+}
 
-  campaignRunning = false;
-  startCampaignBtn.disabled = Notification.permission !== 'granted';
-  stopCampaignBtn.disabled = true;
+async function scheduleWithTrigger(title, body, whenMs, tag) {
+  await swRegistration.showNotification(title, {
+    body,
+    icon: APP_ICON,
+    tag,
+    showTrigger: new window.TimestampTrigger(whenMs),
+    data: { url: window.location.href, app: APP_NAME }
+  });
+}
+
+function stopSchedule({ showMessage = true } = {}) {
+  clearFallbackTimers();
+  running = false;
+  updateUI();
 
   if (showMessage) {
-    campaignStatus.textContent = `Sequência parada em ${campaignSent}/${campaignTotal}.`;
+    campaignStatus.textContent = `Disparo parado. Enviadas ${sentCount}/${totalCount}.`;
   }
 }
 
-function triggerCampaignNotification() {
-  campaignSent += 1;
-  const title = applyTemplate(branding.notificationTitle, campaignSent, campaignTotal);
-  const body = applyTemplate(branding.notificationBody, campaignSent, campaignTotal);
-
-  showLocalNotification(
-    title,
-    body
-  );
-
-  campaignStatus.textContent = `Enviadas ${campaignSent} de ${campaignTotal}.`;
-
-  if (campaignSent >= campaignTotal) {
-    stopCampaign(false);
-    campaignStatus.textContent = `Concluído: ${campaignTotal} notificações enviadas.`;
-  }
-}
-
-function startCampaign() {
-  const total = Number.parseInt(countInput.value, 10);
-  const everyMinutes = Number.parseFloat(intervalInput.value);
-
-  if (!Number.isFinite(total) || total < 1) {
-    noteArea.textContent = 'Informe uma quantidade válida (mínimo 1).';
-    return;
-  }
-
-  if (!Number.isFinite(everyMinutes) || everyMinutes <= 0) {
-    noteArea.textContent = 'Informe um intervalo válido em minutos.';
-    return;
-  }
-
+async function startSchedule() {
   if (Notification.permission !== 'granted') {
-    noteArea.textContent = 'Permita notificações antes de iniciar a sequência.';
+    noteArea.textContent = 'Permita notificações antes de programar.';
     return;
   }
 
-  stopCampaign(false);
-
-  campaignRunning = true;
-  campaignTotal = total;
-  campaignSent = 0;
-
-  const intervalMs = Math.round(everyMinutes * 60 * 1000);
-
-  startCampaignBtn.disabled = true;
-  stopCampaignBtn.disabled = false;
-  campaignStatus.textContent = `Sequência iniciada: ${campaignTotal} notificações a cada ${everyMinutes} min.`;
-  noteArea.textContent = 'Primeira notificação enviada agora. As próximas seguem no intervalo configurado.';
-
-  triggerCampaignNotification();
-
-  if (campaignTotal > 1) {
-    campaignTimer = setInterval(() => {
-      triggerCampaignNotification();
-    }, intervalMs);
+  const amount = parseAmount();
+  if (amount === null) {
+    noteArea.textContent = 'Informe um valor válido em reais.';
+    return;
   }
+
+  let jobs;
+  try {
+    jobs = getJobs();
+  } catch (error) {
+    noteArea.textContent = error.message;
+    return;
+  }
+
+  if (jobs.length === 0) {
+    noteArea.textContent = 'Selecione pelo menos 1 tipo de notificação.';
+    return;
+  }
+
+  stopSchedule({ showMessage: false });
+
+  running = true;
+  sentCount = 0;
+  totalCount = jobs.reduce((sum, job) => sum + job.count, 0);
+  campaignStatus.textContent = `Programado ${totalCount} disparos.`;
+  updateUI();
+
+  const formatted = formatCurrencyBRL(amount);
+  const now = Date.now();
+  const useTrigger = supportsNotificationTriggers();
+
+  for (const job of jobs) {
+    for (let i = 0; i < job.count; i += 1) {
+      const scheduleAt = now + i * job.intervalMs;
+      const { title, body } = getTemplateMessage(job.type, formatted);
+      const tag = `${job.type}-${Date.now()}-${i}`;
+
+      if (useTrigger) {
+        await scheduleWithTrigger(title, body, scheduleAt, tag);
+      } else {
+        const delay = Math.max(0, scheduleAt - Date.now());
+        const timeoutId = window.setTimeout(() => {
+          showLocalNotification(title, body, tag);
+          sentCount += 1;
+          campaignStatus.textContent = `Enviadas ${sentCount}/${totalCount}.`;
+
+          if (sentCount >= totalCount) {
+            running = false;
+            updateUI();
+            campaignStatus.textContent = `Concluído: ${totalCount} notificações enviadas.`;
+          }
+        }, delay);
+
+        pendingTimeouts.push(timeoutId);
+      }
+    }
+  }
+
+  if (useTrigger) {
+    campaignStatus.textContent = `Programado ${totalCount} disparos em segundo plano.`;
+    noteArea.textContent = 'Disparos agendados pelo navegador/Service Worker.';
+    running = false;
+    updateUI();
+    return;
+  }
+
+  noteArea.textContent = 'Seu navegador não suporta agendamento nativo em segundo plano. O envio vai ocorrer enquanto o app estiver em execução.';
+}
+
+function getFirstSelectedType() {
+  if (typePending.checked) {
+    return 'pending';
+  }
+
+  if (typeSale.checked) {
+    return 'sale';
+  }
+
+  if (typeWithdraw.checked) {
+    return 'withdraw';
+  }
+
+  return null;
 }
 
 enableBtn.addEventListener('click', async () => {
@@ -489,42 +317,43 @@ enableBtn.addEventListener('click', async () => {
   updateUI();
 
   if (result === 'granted') {
-    noteArea.textContent = 'Permissão concedida. Agora você pode testar notificações.';
+    noteArea.textContent = 'Permissão concedida. Agora você pode disparar as notificações.';
   } else if (result === 'denied') {
-    noteArea.textContent = 'Permissão bloqueada. Libere nas configurações do Safari.';
+    noteArea.textContent = 'Permissão bloqueada. Libere nas configurações do navegador.';
   }
 });
 
-notifyBtn.addEventListener('click', () => {
-  showLocalNotification(branding.notificationTitle, branding.notificationBody);
+testBtn.addEventListener('click', () => {
+  const amount = parseAmount();
+  if (amount === null) {
+    noteArea.textContent = 'Informe um valor válido para testar.';
+    return;
+  }
+
+  const firstType = getFirstSelectedType();
+  if (!firstType) {
+    noteArea.textContent = 'Selecione pelo menos 1 tipo para enviar teste.';
+    return;
+  }
+
+  const formatted = formatCurrencyBRL(amount);
+  const { title, body } = getTemplateMessage(firstType, formatted);
+  showLocalNotification(title, body, `test-${Date.now()}`);
 });
 
-timerBtn.addEventListener('click', () => {
-  noteArea.textContent = 'Agendado: vou te notificar em 10 segundos.';
-
-  setTimeout(() => {
-    showLocalNotification(branding.notificationTitle, branding.notificationBody);
-  }, 10000);
+startBtn.addEventListener('click', () => {
+  startSchedule();
 });
 
-startCampaignBtn.addEventListener('click', () => {
-  startCampaign();
-});
-
-stopCampaignBtn.addEventListener('click', () => {
-  stopCampaign();
+stopBtn.addEventListener('click', () => {
+  stopSchedule();
 });
 
 window.addEventListener('load', async () => {
-  loadBranding();
-  applyBranding();
-  bootstrapPresetFromUrl();
-  bindBrandingEvents();
-
   await registerServiceWorker();
   updateUI();
 
   if (isIOS() && !isStandaloneMode()) {
-    noteArea.textContent = 'No iPhone, para notificações web: Safari > Compartilhar > Adicionar à Tela de Início e abrir pelo ícone.';
+    noteArea.textContent = 'No iPhone, instale pela Tela de Início para melhorar notificações em segundo plano.';
   }
 });

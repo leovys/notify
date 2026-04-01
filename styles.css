@@ -1,14 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap');
 
 :root {
-  --bg-1: #072b2b;
-  --bg-2: #144e5a;
+  --bg-1: #1a083c;
+  --bg-2: #4a12c7;
   --surface: rgba(255, 255, 255, 0.9);
   --text: #0f172a;
   --muted: #334155;
-  --primary: #0f766e;
-  --primary-dark: #115e59;
-  --accent: #f59e0b;
+  --primary: #4a12c7;
+  --primary-dark: #360d97;
 }
 
 * {
@@ -24,8 +23,8 @@ body {
   font-family: 'Manrope', sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at 15% 20%, rgba(245, 158, 11, 0.32), transparent 40%),
-    radial-gradient(circle at 85% 80%, rgba(20, 184, 166, 0.28), transparent 38%),
+    radial-gradient(circle at 15% 20%, rgba(236, 72, 153, 0.25), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(129, 140, 248, 0.26), transparent 38%),
     linear-gradient(140deg, var(--bg-1), var(--bg-2));
 }
 
@@ -39,16 +38,14 @@ body {
   animation: rise 0.5s ease-out;
 }
 
-.badge {
-  margin: 0;
-  display: inline-block;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #134e4a;
-  background: #ccfbf1;
-  border-radius: 999px;
-  padding: 6px 12px;
+.logo {
+  width: 88px;
+  height: 88px;
+  border-radius: 22px;
+  display: block;
+  margin: 0 auto 12px;
+  object-fit: cover;
+  border: 1px solid #d8b4fe;
 }
 
 h1 {
@@ -82,20 +79,6 @@ h1 {
   font-size: 16px;
 }
 
-.diag {
-  margin: 8px 0 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: #1e293b;
-  white-space: pre-wrap;
-}
-
-.branding-grid {
-  display: grid;
-  gap: 10px;
-  margin-top: 10px;
-}
-
 .field {
   display: grid;
   gap: 6px;
@@ -125,87 +108,6 @@ h1 {
   border-color: #0f766e;
 }
 
-.preview {
-  margin-top: 12px;
-  margin-bottom: 12px;
-  display: grid;
-  grid-template-columns: 52px 1fr;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border-radius: 12px;
-  background: #ecfeff;
-  border: 1px solid #bae6fd;
-}
-
-.preview img {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  object-fit: cover;
-  border: 1px solid #99f6e4;
-  background: #f8fafc;
-}
-
-.preview strong {
-  margin: 0;
-  display: block;
-  font-size: 15px;
-}
-
-.preview p {
-  margin: 2px 0 0;
-  font-size: 13px;
-  color: #475569;
-}
-
-.notification-preview {
-  margin-bottom: 12px;
-  border-radius: 14px;
-  padding: 10px;
-  background: linear-gradient(170deg, #0b1220, #05070c 70%);
-}
-
-.notification-app {
-  margin: 0 0 8px;
-  color: #f8fafc;
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.notification-card {
-  display: grid;
-  grid-template-columns: 42px 1fr;
-  gap: 10px;
-  align-items: center;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  border-radius: 16px;
-  padding: 10px;
-  background: rgba(15, 23, 42, 0.72);
-  backdrop-filter: blur(3px);
-}
-
-.notification-card img {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  object-fit: cover;
-}
-
-.notification-card strong {
-  display: block;
-  margin: 0;
-  color: #f8fafc;
-  font-size: 17px;
-  line-height: 1.1;
-}
-
-.notification-card p {
-  margin: 2px 0 0;
-  color: #cbd5e1;
-  font-size: 14px;
-}
-
 .actions {
   display: grid;
   gap: 10px;
@@ -221,6 +123,43 @@ h1 {
   gap: 10px;
   margin-top: 10px;
   margin-bottom: 10px;
+}
+
+.templates-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.template-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 10px;
+}
+
+.template-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.template-msg {
+  margin: 8px 0;
+  padding: 8px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #334155;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.template-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .campaign-status {
@@ -252,7 +191,7 @@ h1 {
 .btn-primary {
   color: #f0fdfa;
   background: linear-gradient(145deg, var(--primary), #0f766e);
-  box-shadow: 0 12px 24px rgba(15, 118, 110, 0.25);
+  box-shadow: 0 12px 24px rgba(74, 18, 199, 0.28);
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -298,6 +237,10 @@ h1 {
 
 @media (max-width: 480px) {
   .inline-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .template-fields {
     grid-template-columns: 1fr;
   }
 }

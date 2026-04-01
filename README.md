@@ -1,15 +1,19 @@
 # Notify Web App (PWA)
 
-Interface web simples para testar notificações no iPhone em estilo app.
+Disparador simples de notificações no padrão zpay.
 
-## Arquivos
+## Fluxo atual
 
-- index.html: interface
-- styles.css: estilos
-- app.js: lógica de permissão e disparo de notificação
-- sw.js: service worker
-- manifest.webmanifest: configuração PWA
-- icon.svg: ícone
+- Escolher o valor em reais.
+- Selecionar 1, 2 ou os 3 tipos de mensagem.
+- Definir quantidade e intervalo (minutos) para cada tipo selecionado.
+- Programar os disparos.
+
+## Mensagens padrão
+
+- Venda Pendente
+- Venda Realizada
+- Saque Aprovado
 
 ## Como rodar
 
@@ -19,16 +23,8 @@ Exemplo com Node:
 
 npx serve .
 
-Depois abra a URL exibida no Safari do iPhone.
+## Importante sobre segundo plano
 
-## Fluxo no iPhone
-
-1. Abra a página no Safari.
-2. Toque em Ativar notificações.
-3. Se quiser experiência mais "app", toque em Compartilhar > Adicionar à Tela de Início.
-4. Abra pela Tela de Início e teste os botões de notificação.
-
-## Importante (limitação do iOS)
-
-- Notificações não podem ser disparadas automaticamente ao carregar a página sem interação.
-- Para Web Push real em background (mesmo com o app fechado), você precisará de backend com VAPID + inscrição push do usuário.
+- Quando o navegador suportar Notification Triggers, os disparos podem ficar agendados via Service Worker.
+- Sem esse suporte, o app dispara enquanto estiver em execução (inclusive em segundo plano), mas pode parar se o sistema encerrar a página.
+- Para push real com app fechado em qualquer cenário, é necessário backend com Web Push (VAPID).

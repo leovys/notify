@@ -8,13 +8,15 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || './index.html';
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      if (clients.length > 0) {
-        return clients[0].focus();
+      const existing = clients.find((client) => client.url.includes(targetUrl) || client.url.includes('/index.html'));
+      if (existing) {
+        return existing.focus();
       }
-      return self.clients.openWindow('./');
+      return self.clients.openWindow(targetUrl);
     })
   );
 });
