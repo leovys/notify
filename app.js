@@ -65,7 +65,7 @@ function getTemplateMessage(type, formattedValue) {
 
   if (type === 'sale') {
     return {
-      title: '💰 Nova Venda Realizada',
+      title: '💰 Nova Venda Realizada!',
       body: `Valor: ${formattedValue}`
     };
   }
