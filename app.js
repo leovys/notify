@@ -6,6 +6,8 @@ const stopBtn = document.getElementById('stopBtn');
 const noteArea = document.getElementById('noteArea');
 const campaignStatus = document.getElementById('campaignStatus');
 const amountInput = document.getElementById('amountInput');
+const manualTypeSelect = document.getElementById('manualTypeSelect');
+const manualSendBtn = document.getElementById('manualSendBtn');
 
 const typePending = document.getElementById('typePending');
 const typeSale = document.getElementById('typeSale');
@@ -19,7 +21,7 @@ const withdrawCount = document.getElementById('withdrawCount');
 const withdrawInterval = document.getElementById('withdrawInterval');
 
 const APP_NAME = 'zpay';
-const APP_ICON = new URL('image.png', window.location.href).href;
+const APP_ICON = new URL('logo.png', window.location.href).href;
 const pendingTimeouts = [];
 
 let swRegistration;
@@ -144,6 +146,7 @@ function updateUI() {
     permissionStatus.textContent = 'Notificações indisponíveis';
     enableBtn.disabled = true;
     testBtn.disabled = true;
+    manualSendBtn.disabled = true;
     startBtn.disabled = true;
     stopBtn.disabled = true;
     noteArea.textContent = blockReason;
@@ -160,6 +163,7 @@ function updateUI() {
 
   const granted = Notification.permission === 'granted';
   testBtn.disabled = !granted;
+  manualSendBtn.disabled = !granted;
   startBtn.disabled = !granted || running;
   stopBtn.disabled = !running;
 }
@@ -339,6 +343,20 @@ testBtn.addEventListener('click', () => {
   const formatted = formatCurrencyBRL(amount);
   const { title, body } = getTemplateMessage(firstType, formatted);
   showLocalNotification(title, body, `test-${Date.now()}`);
+});
+
+manualSendBtn.addEventListener('click', () => {
+  const amount = parseAmount();
+  if (amount === null) {
+    noteArea.textContent = 'Informe um valor válido para envio manual.';
+    return;
+  }
+
+  const selectedType = String(manualTypeSelect.value || 'pending');
+  const formatted = formatCurrencyBRL(amount);
+  const { title, body } = getTemplateMessage(selectedType, formatted);
+  showLocalNotification(title, body, `manual-${Date.now()}`);
+  noteArea.textContent = 'Notificação manual enviada agora.';
 });
 
 startBtn.addEventListener('click', () => {

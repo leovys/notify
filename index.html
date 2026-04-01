@@ -8,14 +8,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="zpay" />
     <title>zpay - Disparador</title>
-    <link rel="apple-touch-icon" href="image.png" />
+    <link rel="apple-touch-icon" href="logo.png" />
     <link rel="manifest" href="manifest.webmanifest?v=4" />
     <link rel="stylesheet" href="styles.css" />
     <script defer src="app.js"></script>
   </head>
   <body>
     <main class="card">
-      <img class="logo" src="image.png" alt="Logo zpay" />
+      <img class="logo" src="logo.png" alt="Logo zpay" />
       <h1>Disparo de Notificações</h1>
       <p class="subtitle">Escolha o tipo, informe o valor e programe quantidade + intervalo.</p>
 
@@ -28,6 +28,21 @@
         <button id="enableBtn" class="btn btn-primary">Ativar notificações</button>
         <button id="testBtn" class="btn btn-secondary" disabled>Enviar teste agora</button>
       </div>
+
+      <section class="panel">
+        <p>Disparo manual rápido:</p>
+        <div class="manual-grid">
+          <label class="field">
+            <span>Tipo da notificação</span>
+            <select id="manualTypeSelect">
+              <option value="pending">Venda Pendente</option>
+              <option value="sale">Venda Realizada</option>
+              <option value="withdraw">Saque Aprovado</option>
+            </select>
+          </label>
+          <button id="manualSendBtn" class="btn btn-primary" disabled>Enviar agora</button>
+        </div>
+      </section>
 
       <section class="panel">
         <p>Configuração:</p>
